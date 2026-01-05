@@ -17,7 +17,8 @@ app.use(cors({
     'http://gabbudget.nabitat.me',
     'https://gabdev.nabitat.me',
     'http://gabdev.nabitat.me',
-    'http://192.168.4.57:3000'
+    'http://192.168.4.57:3000',
+    'http://192.168.4.88:3000'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
