@@ -13,6 +13,8 @@ const HOST = process.env.HOST || '0.0.0.0'; // Listen on all network interfaces
 // Middleware
 app.use(cors({
   origin: [
+    'https://gabbudget.nabitat.me',
+    'http://gabbudget.nabitat.me',
     'https://gabdev.nabitat.me',
     'http://gabdev.nabitat.me',
     'http://192.168.4.57:3000'
