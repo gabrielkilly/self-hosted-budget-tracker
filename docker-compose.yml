@@ -30,7 +30,7 @@ services:
     environment:
       - PORT=3001
       - HOST=0.0.0.0
-      - NODE_ENV=production
+      - NODE_ENV=development
       - DB_TYPE=postgres
       - DATABASE_URL=postgresql://gkilly:gcamgr6@postgres:5432/budget_tracker_personal
     ports:
