@@ -33,6 +33,7 @@ services:
       - NODE_ENV=development
       - DB_TYPE=postgres
       - DATABASE_URL=postgresql://gkilly:gcamgr6@postgres:5432/budget_tracker_personal
+      - CORS_ORIGINS=https://gabbudget.nabitat.me,http://gabbudget.nabitat.me,http://192.168.4.88:3000,http://localhost:3000
     ports:
       - "3001:3001"
     depends_on:
@@ -49,7 +50,7 @@ services:
       dockerfile: Dockerfile
     container_name: budget-tracker-frontend
     environment:
-      - REACT_APP_API_URL=http://localhost:3001
+      - REACT_APP_API_URL=https://gabbudgetapi.nabitat.me/api
       - BROWSER=none
     ports:
       - "3000:3000"

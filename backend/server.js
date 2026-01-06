@@ -10,16 +10,17 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '0.0.0.0'; // Listen on all network interfaces
 
-// Middleware
+// CORS configuration
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+  : [
+      'http://localhost:3000'
+    ];
+
+console.log('✓ CORS allowed origins:', allowedOrigins);
+
 app.use(cors({
-  origin: [
-    'https://gabbudget.nabitat.me',
-    'http://gabbudget.nabitat.me',
-    'https://gabdev.nabitat.me',
-    'http://gabdev.nabitat.me',
-    'http://192.168.4.57:3000',
-    'http://192.168.4.88:3000'
-  ],
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
