@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
-const API_URL = 'https://api.nabitat.me/api';
+// const API_URL = 'https://api.nabitat.me/api';
+const API_URL = 'http://192.168.4.88:3001/api';
 
 const COLORS = ['#1E40AF', '#059669', '#D97706', '#DC2626', '#7C3AED', '#0891B2', '#BE185D', '#EA580C', '#15803D', '#6366F1'];
 
