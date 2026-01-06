@@ -1,0 +1,67 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16
+    container_name: budget-tracker-postgres
+    environment:
+      POSTGRES_USER: gkilly
+      POSTGRES_PASSWORD: gcamgr6
+      POSTGRES_DB: budget_tracker_personal
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/postgres-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/postgres-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    networks:
+      - budget-tracker-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gkilly -d budget_tracker_personal"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API - Using pre-built image from registry
+  backend:
+    # Replace YOUR_GITHUB_USERNAME with your actual GitHub username
+    image: ghcr.io/YOUR_GITHUB_USERNAME/budget-tracker-backend:latest
+    container_name: budget-tracker-backend
+    environment:
+      - PORT=3001
+      - HOST=0.0.0.0
+      - NODE_ENV=development
+      - DB_TYPE=postgres
+      - DATABASE_URL=postgresql://gkilly:gcamgr6@postgres:5432/budget_tracker_personal
+      - CORS_ORIGINS=https://gabbudget.nabitat.me,http://gabbudget.nabitat.me,http://192.168.4.88:3000,http://localhost:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - budget-tracker-network
+    restart: unless-stopped
+
+  # Frontend React App - Using pre-built image from registry
+  frontend:
+    # Replace YOUR_GITHUB_USERNAME with your actual GitHub username
+    image: ghcr.io/YOUR_GITHUB_USERNAME/budget-tracker-frontend:latest
+    container_name: budget-tracker-frontend
+    environment:
+      - REACT_APP_API_URL=https://gabbudgetapi.nabitat.me/api
+      - BROWSER=none
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - budget-tracker-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  budget-tracker-network:
+    driver: bridge
