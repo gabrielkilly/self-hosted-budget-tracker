@@ -307,7 +307,6 @@ function App() {
 
   const handleUpdateTransaction = async (e) => {
     e.preventDefault();
-
     if (!editingTransaction.date || !editingTransaction.budget_type || !editingTransaction.amount) {
       alert('Please fill in all required fields (Date, Category, Amount)');
       return;
