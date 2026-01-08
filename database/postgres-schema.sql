@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     description TEXT,
     budget_type VARCHAR(100),
     amount DECIMAL(10, 2) NOT NULL,
-    payedOff BOOLEAN DEFAULT TRUE,
+    "payedOff" BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -49,4 +49,4 @@ COMMENT ON COLUMN transactions.name IS 'Transaction merchant/name';
 COMMENT ON COLUMN transactions.description IS 'Transaction description';
 COMMENT ON COLUMN transactions.budget_type IS 'Budget category (e.g., Personal eat out, Personal subscriptions)';
 COMMENT ON COLUMN transactions.amount IS 'Transaction amount in dollars';
-COMMENT ON COLUMN transactions.payedOff IS 'Whether the transaction has been paid off (true/false)';
+COMMENT ON COLUMN transactions."payedOff" IS 'Whether the transaction has been paid off (true/false)';

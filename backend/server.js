@@ -394,7 +394,7 @@ app.get('/api/analytics/category-breakdown', async (req, res) => {
         COUNT(*) as transaction_count,
         SUM(amount) as total_amount
       FROM transactions
-      WHERE DATE_TRUNC('month', date) = DATE_TRUNC('month', $1::date)
+      WHERE TO_CHAR(date, 'YYYY-MM') = $1
       GROUP BY budget_type
       ORDER BY total_amount DESC
     `;

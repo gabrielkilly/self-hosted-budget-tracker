@@ -3,7 +3,8 @@
     "allow": [
       "Bash(curl:*)",
       "Bash(node -e:*)",
-      "Bash(docker-compose config:*)"
+      "Bash(docker-compose config:*)",
+      "Bash(docker exec:*)"
     ]
   }
 }
