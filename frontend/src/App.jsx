@@ -42,6 +42,9 @@ function App() {
   const [unpaidTransactions, setUnpaidTransactions] = useState([]);
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [importFile, setImportFile] = useState(null);
+  const [importMessage, setImportMessage] = useState({ type: '', text: '' });
+  const [importResults, setImportResults] = useState(null);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -380,6 +383,94 @@ function App() {
     setShowDeleteConfirm(null);
   };
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImportFile(file);
+    setImportMessage({ type: '', text: '' });
+    setImportResults(null);
+
+    // Parse CSV file
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target.result;
+        const lines = text.split('\n');
+
+        // Skip header row
+        const dataLines = lines.slice(1).filter(line => line.trim());
+
+        const transactions = [];
+
+        for (const line of dataLines) {
+          // Parse CSV line (handling quoted fields)
+          const matches = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+          if (!matches || matches.length < 6) continue;
+
+          const [date, description, originalDescription, category, amount, status] = matches.map(m =>
+            m.replace(/^"|"$/g, '').trim()
+          );
+
+          // Skip if invalid data
+          if (!date || !amount || !category) continue;
+
+          const parsedAmount = parseFloat(amount);
+          if (isNaN(parsedAmount) || parsedAmount === 0) continue;
+
+          // Skip credit card payments (negative amounts)
+          if (parsedAmount < 0) continue;
+
+          transactions.push({
+            date: date,
+            name: description || originalDescription || 'Unknown',
+            description: originalDescription || description || '',
+            budget_type: "",
+            amount: parsedAmount
+          });
+        }
+
+        if (transactions.length === 0) {
+          setImportMessage({ type: 'error', text: 'No valid transactions found in CSV file' });
+          return;
+        }
+
+        // Send to backend
+        setImportMessage({ type: 'info', text: `Processing ${transactions.length} transactions...` });
+
+        const response = await fetch(`${API_URL}/transactions/import`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ transactions })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          setImportMessage({
+            type: 'success',
+            text: `Successfully imported ${data.imported} transactions! ${data.errors > 0 ? `(${data.errors} errors)` : ''}`
+          });
+          setImportResults(data.details);
+          fetchAllData();
+
+          // Clear file input
+          e.target.value = '';
+          setImportFile(null);
+        } else {
+          setImportMessage({ type: 'error', text: data.error || 'Failed to import transactions' });
+        }
+      } catch (error) {
+        console.error('Error parsing CSV:', error);
+        setImportMessage({ type: 'error', text: 'Error parsing CSV file. Please check the format.' });
+      }
+    };
+
+    reader.readAsText(file);
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -423,6 +514,12 @@ function App() {
             onClick={() => setActiveTab('add')}
           >
             ➕ Add Transaction
+          </button>
+          <button
+            className={activeTab === 'import' ? 'active' : ''}
+            onClick={() => setActiveTab('import')}
+          >
+            📂 Import CSV
           </button>
         </nav>
 
@@ -1007,6 +1104,97 @@ function App() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Import CSV Tab */}
+      {activeTab === 'import' && (
+        <div className="tab-content">
+          <h2>Import Transactions from CSV</h2>
+          <div className="add-transaction-form">
+            <div className="import-instructions">
+              <h3>Instructions</h3>
+              <p>Upload a CSV file with the following format:</p>
+              <ul>
+                <li><strong>Date</strong> - Transaction date (YYYY-MM-DD)</li>
+                <li><strong>Description</strong> - Transaction name</li>
+                <li><strong>Original Description</strong> - Full description</li>
+                <li><strong>Category</strong> - Budget category</li>
+                <li><strong>Amount</strong> - Transaction amount</li>
+                <li><strong>Status</strong> - Transaction status (Pending/Posted)</li>
+              </ul>
+              <p className="import-note">
+                ⚠️ All imported transactions will be marked as <strong>unpaid</strong>.
+                <br />
+                💡 Negative amounts (payments) and zero amounts will be skipped.
+              </p>
+            </div>
+
+            {importMessage.text && (
+              <div className={`form-message ${importMessage.type}`}>
+                {importMessage.text}
+              </div>
+            )}
+
+            <div className="form-group">
+              <label htmlFor="csv-file">Select CSV File</label>
+              <input
+                type="file"
+                id="csv-file"
+                accept=".csv"
+                onChange={handleFileUpload}
+                className="file-input"
+              />
+            </div>
+
+            {importResults && importResults.errors && importResults.errors.length > 0 && (
+              <div className="import-errors">
+                <h3>Import Errors ({importResults.errors.length})</h3>
+                <div className="error-list">
+                  {importResults.errors.slice(0, 10).map((error, index) => (
+                    <div key={index} className="error-item">
+                      <strong>Row {error.row}:</strong> {error.error}
+                    </div>
+                  ))}
+                  {importResults.errors.length > 10 && (
+                    <p>...and {importResults.errors.length - 10} more errors</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {importResults && importResults.imported && importResults.imported.length > 0 && (
+              <div className="import-success">
+                <h3>Successfully Imported ({importResults.imported.length})</h3>
+                <div className="success-summary">
+                  <p>Preview of first 5 transactions:</p>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {importResults.imported.slice(0, 5).map((tx, index) => (
+                        <tr key={index}>
+                          <td>{formatDate(tx.date)}</td>
+                          <td>{tx.name}</td>
+                          <td><span className="badge">{tx.budget_type}</span></td>
+                          <td className="amount">{formatCurrency(tx.amount)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {importResults.imported.length > 5 && (
+                    <p>...and {importResults.imported.length - 5} more transactions</p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

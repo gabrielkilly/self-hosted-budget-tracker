@@ -493,10 +493,89 @@ app.get('/api/budget-types', async (req, res) => {
   }
 });
 
+// Import transactions from CSV
+app.post('/api/transactions/import', async (req, res) => {
+  try {
+    const { transactions } = req.body;
+
+    if (!transactions || !Array.isArray(transactions)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid request: transactions array is required'
+      });
+    }
+
+    const imported = [];
+    const errors = [];
+
+    for (let i = 0; i < transactions.length; i++) {
+      const tx = transactions[i];
+
+      try {
+        // Skip transactions with invalid amounts or missing required fields
+        if (!tx.date || !tx.amount) {
+          errors.push({ row: i + 1, error: 'Missing required fields', data: tx });
+          continue;
+        }
+
+        const parsedAmount = parseFloat(tx.amount);
+        if (isNaN(parsedAmount) || parsedAmount === 0) {
+          errors.push({ row: i + 1, error: 'Invalid or zero amount', data: tx });
+          continue;
+        }
+
+        // Skip credit card payments (negative amounts)
+        if (parsedAmount < 0) {
+          continue;
+        }
+
+        // Insert transaction (marked as unpaid)
+        const sql = USE_SQLITE
+          ? 'INSERT INTO transactions (date, name, description, budget_type, amount, payedOff) VALUES (?, ?, ?, ?, ?, ?)'
+          : 'INSERT INTO transactions (date, name, description, budget_type, amount, "payedOff") VALUES ($1, $2, $3, $4, $5, $6) RETURNING *';
+
+        const params = [
+          tx.date,
+          tx.name || null,
+          tx.description || null,
+          tx.budget_type,
+          parsedAmount,
+          false // Mark as unpaid
+        ];
+
+        if (USE_SQLITE) {
+          const insertResult = await new Promise((resolve, reject) => {
+            db.run(sql, params, function(err) {
+              if (err) reject(err);
+              else resolve({ id: this.lastID });
+            });
+          });
+          imported.push({ id: insertResult.id, ...tx });
+        } else {
+          const result = await queryDB(sql, params);
+          imported.push(result[0]);
+        }
+      } catch (error) {
+        errors.push({ row: i + 1, error: error.message, data: tx });
+      }
+    }
+
+    res.json({
+      success: true,
+      imported: imported.length,
+      errors: errors.length,
+      details: { imported, errors }
+    });
+  } catch (error) {
+    console.error('Error importing transactions:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    success: true, 
+  res.json({
+    success: true,
     message: 'API is running',
     database: USE_SQLITE ? 'SQLite' : 'PostgreSQL'
   });
