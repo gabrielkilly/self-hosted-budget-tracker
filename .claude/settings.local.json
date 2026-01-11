@@ -4,7 +4,8 @@
       "Bash(curl:*)",
       "Bash(node -e:*)",
       "Bash(docker-compose config:*)",
-      "Bash(docker exec:*)"
+      "Bash(docker exec:*)",
+      "Bash(docker ps:*)"
     ]
   }
 }

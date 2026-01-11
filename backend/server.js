@@ -163,7 +163,7 @@ app.post('/api/transactions', async (req, res) => {
     // Insert transaction
     const sql = USE_SQLITE
       ? 'INSERT INTO transactions (date, name, description, budget_type, amount, payedOff) VALUES (?, ?, ?, ?, ?, ?)'
-      : 'INSERT INTO transactions (date, name, description, budget_type, amount, payedOff) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *';
+      : 'INSERT INTO transactions (date, name, description, budget_type, amount, "payedOff") VALUES ($1, $2, $3, $4, $5, $6) RETURNING *';
 
     const params = [date, name || null, description || null, budget_type, parsedAmount, payedOffValue];
 
@@ -229,7 +229,7 @@ app.put('/api/transactions/:id', async (req, res) => {
     // Update transaction
     const sql = USE_SQLITE
       ? 'UPDATE transactions SET date = ?, name = ?, description = ?, budget_type = ?, amount = ?, payedOff = ? WHERE id = ?'
-      : 'UPDATE transactions SET date = $1, name = $2, description = $3, budget_type = $4, amount = $5, payedOff = $6 WHERE id = $7 RETURNING *';
+      : 'UPDATE transactions SET date = $1, name = $2, description = $3, budget_type = $4, amount = $5, "payedOff" = $6 WHERE id = $7 RETURNING *';
 
     const params = USE_SQLITE
       ? [date, name || null, description || null, budget_type, parsedAmount, payedOffValue, id]
