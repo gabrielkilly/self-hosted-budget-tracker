@@ -1057,6 +1057,42 @@ body.dark-mode .category-count {
   color: #9ca3af;
 }
 
+.category-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn-mark-paid {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-mark-paid:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.btn-mark-paid:active {
+  transform: translateY(0);
+}
+
+.dark-mode .btn-mark-paid {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
 .unpaid-table {
   width: 100%;
   border-collapse: collapse;

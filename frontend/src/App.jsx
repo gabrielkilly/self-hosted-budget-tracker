@@ -12,7 +12,10 @@ function App() {
   const [stats, setStats] = useState(null);
   const [trends, setTrends] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('chart');
+  const [activeTab, setActiveTab] = useState(() => {
+    const saved = localStorage.getItem('activeTab');
+    return saved || 'chart';
+  });
   const [filters, setFilters] = useState({
     budget_type: '',
     start_date: '',
@@ -60,6 +63,11 @@ function App() {
     }
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
+
+  // Save active tab to localStorage
+  useEffect(() => {
+    localStorage.setItem('activeTab', activeTab);
+  }, [activeTab]);
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -379,6 +387,56 @@ function App() {
 
   const cancelDelete = () => {
     setShowDeleteConfirm(null);
+  };
+
+  const handleMarkCategoryAsPaid = async (categoryTransactions, categoryName) => {
+    if (!window.confirm(`Mark all ${categoryTransactions.length} transactions in "${categoryName}" as paid?`)) {
+      return;
+    }
+
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const transaction of categoryTransactions) {
+        try {
+          const response = await fetch(`${API_URL}/transactions/${transaction.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              date: transaction.date.split('T')[0],
+              name: transaction.name,
+              description: transaction.description,
+              budget_type: transaction.budget_type,
+              amount: parseFloat(transaction.amount),
+              payedOff: true
+            })
+          });
+
+          const data = await response.json();
+          if (data.success) {
+            successCount++;
+          } else {
+            errorCount++;
+          }
+        } catch (error) {
+          errorCount++;
+        }
+      }
+
+      if (errorCount > 0) {
+        alert(`Marked ${successCount} as paid. ${errorCount} failed.`);
+      } else {
+        alert(`Successfully marked all ${successCount} transactions as paid!`);
+      }
+
+      fetchAllData();
+    } catch (error) {
+      console.error('Error marking category as paid:', error);
+      alert('Error updating transactions. Please try again.');
+    }
   };
 
   const handleFileUpload = async (e) => {
@@ -835,10 +893,19 @@ function App() {
 
                   return (
                     <div key={category} className="category-group">
-                      <h3 className="category-header">
-                        <span className="category-name">{category}</span>
-                        <span className="category-count">({categoryTransactions.length} transactions)</span>
-                      </h3>
+                      <div className="category-header-row">
+                        <h3 className="category-header">
+                          <span className="category-name">{category}</span>
+                          <span className="category-count">({categoryTransactions.length} transactions)</span>
+                        </h3>
+                        <button
+                          className="btn-mark-paid"
+                          onClick={() => handleMarkCategoryAsPaid(categoryTransactions, category)}
+                          title="Mark all transactions in this category as paid"
+                        >
+                          ✓ Mark as Paid
+                        </button>
+                      </div>
 
                       <table className="unpaid-table">
                         <thead>
