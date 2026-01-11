@@ -69,6 +69,27 @@ function App() {
     localStorage.setItem('activeTab', activeTab);
   }, [activeTab]);
 
+  // Save and restore scroll position
+  useEffect(() => {
+    // Restore scroll position for current tab
+    const savedScrollPosition = localStorage.getItem(`scrollPosition_${activeTab}`);
+    if (savedScrollPosition) {
+      window.scrollTo(0, parseInt(savedScrollPosition));
+    }
+
+    // Save scroll position on scroll
+    const handleScroll = () => {
+      localStorage.setItem(`scrollPosition_${activeTab}`, window.scrollY.toString());
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [activeTab]);
+
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
@@ -304,6 +325,10 @@ function App() {
   };
 
   const handleEdit = (transaction) => {
+    // Save the current tab and scroll position before editing
+    localStorage.setItem('previousTab', activeTab);
+    localStorage.setItem('previousScrollPosition', window.scrollY.toString());
+
     setEditingTransaction({
       ...transaction,
       date: transaction.date.split('T')[0] // Ensure proper date format
@@ -313,7 +338,18 @@ function App() {
 
   const handleCancelEdit = () => {
     setEditingTransaction(null);
-    setActiveTab('transactions');
+
+    // Return to the previous tab
+    const previousTab = localStorage.getItem('previousTab') || 'transactions';
+    setActiveTab(previousTab);
+
+    // Restore scroll position after a short delay to allow tab content to render
+    setTimeout(() => {
+      const previousScroll = localStorage.getItem('previousScrollPosition');
+      if (previousScroll) {
+        window.scrollTo(0, parseInt(previousScroll));
+      }
+    }, 100);
   };
 
   const handleUpdateTransaction = async (e) => {
@@ -348,8 +384,19 @@ function App() {
 
       if (data.success) {
         setEditingTransaction(null);
-        setActiveTab('transactions');
         fetchAllData();
+
+        // Return to the previous tab and scroll position
+        const previousTab = localStorage.getItem('previousTab') || 'transactions';
+        setActiveTab(previousTab);
+
+        // Restore scroll position after a short delay to allow tab content to render
+        setTimeout(() => {
+          const previousScroll = localStorage.getItem('previousScrollPosition');
+          if (previousScroll) {
+            window.scrollTo(0, parseInt(previousScroll));
+          }
+        }, 100);
       } else {
         alert(data.error || 'Failed to update transaction');
       }
@@ -428,8 +475,6 @@ function App() {
 
       if (errorCount > 0) {
         alert(`Marked ${successCount} as paid. ${errorCount} failed.`);
-      } else {
-        alert(`Successfully marked all ${successCount} transactions as paid!`);
       }
 
       fetchAllData();
