@@ -339,7 +339,6 @@ function App() {
       const data = await response.json();
 
       if (data.success) {
-        alert('Transaction updated successfully!');
         setEditingTransaction(null);
         setActiveTab('transactions');
         fetchAllData();
@@ -367,7 +366,6 @@ function App() {
       const data = await response.json();
 
       if (data.success) {
-        alert('Transaction deleted successfully!');
         setShowDeleteConfirm(null);
         fetchAllData();
       } else {
