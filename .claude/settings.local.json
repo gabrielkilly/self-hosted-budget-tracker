@@ -5,7 +5,8 @@
       "Bash(node -e:*)",
       "Bash(docker-compose config:*)",
       "Bash(docker exec:*)",
-      "Bash(docker ps:*)"
+      "Bash(docker ps:*)",
+      "Bash(docker logs:*)"
     ]
   }
 }

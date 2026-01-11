@@ -545,9 +545,6 @@ function App() {
                       <th onClick={() => handleSort('name')} className="sortable">
                         Name {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                       </th>
-                      <th onClick={() => handleSort('description')} className="sortable">
-                        Description {sortConfig.key === 'description' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                      </th>
                       <th onClick={() => handleSort('budget_type')} className="sortable">
                         Category {sortConfig.key === 'budget_type' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                       </th>
@@ -564,7 +561,6 @@ function App() {
                       <tr key={transaction.id}>
                         <td>{formatDate(transaction.date)}</td>
                         <td>{transaction.name}</td>
-                        <td>{transaction.description}</td>
                         <td>
                           <span className="badge">{transaction.budget_type}</span>
                         </td>
@@ -640,7 +636,6 @@ function App() {
                 <tr>
                   <th>Date</th>
                   <th>Name</th>
-                  <th>Description</th>
                   <th>Budget Type</th>
                   <th>Amount</th>
                   <th>Status</th>
@@ -652,7 +647,6 @@ function App() {
                   <tr key={transaction.id}>
                     <td>{formatDate(transaction.date)}</td>
                     <td>{transaction.name}</td>
-                    <td>{transaction.description}</td>
                     <td>
                       <span className="badge">{transaction.budget_type}</span>
                     </td>
@@ -756,7 +750,6 @@ function App() {
                           <tr>
                             <th>Date</th>
                             <th>Name</th>
-                            <th>Description</th>
                             <th>Amount</th>
                             <th>Actions</th>
                           </tr>
@@ -766,7 +759,6 @@ function App() {
                             <tr key={transaction.id}>
                               <td>{formatDate(transaction.date)}</td>
                               <td>{transaction.name}</td>
-                              <td>{transaction.description}</td>
                               <td className="amount">{formatCurrency(transaction.amount)}</td>
                               <td className="actions-cell">
                                 <button
@@ -787,7 +779,7 @@ function App() {
                             </tr>
                           ))}
                           <tr className="category-total-row">
-                            <td colSpan="4" className="total-label">
+                            <td colSpan="3" className="total-label">
                               <strong>{category} Total:</strong>
                             </td>
                             <td className="amount total-amount">
